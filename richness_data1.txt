@@ -1,0 +1,59 @@
+Cluster id	GENUS	FAMILY	ORDER	CLASS	PHYLUM	KINGDOM	
+HL-1	Clostridium	Clostridiaceae	Clostridiales	Clostridia	Firmicutes	Bacteria	
+HL-2			Clostridiales	Clostridia	Firmicutes	Bacteria	
+HL-3	Clostridium	Clostridiaceae	Clostridiales	Clostridia	Firmicutes	Bacteria	
+HL-4		Clostridiaceae	Clostridiales	Clostridia	Firmicutes	Bacteria	
+HL-5			Clostridiales	Clostridia	Firmicutes	Bacteria	
+HL-6			Clostridiales	Clostridia	Firmicutes	Bacteria	
+HL-7	Clostridium	Clostridiaceae	Clostridiales	Clostridia	Firmicutes	Bacteria	
+HL-8			Clostridiales	Clostridia	Firmicutes	Bacteria	
+HL-9		Lachnospiraceae	Clostridiales	Clostridia	Firmicutes	Bacteria	
+HL-10			Clostridiales	Clostridia	Firmicutes	Bacteria	
+HL-11	unclassified Lachnospiraceae	Lachnospiraceae	Clostridiales	Clostridia	Firmicutes	Bacteria	
+HL-12	Clostridium	Lachnospiraceae	Clostridiales	Clostridia	Firmicutes	Bacteria	
+HL-13		Clostridiaceae	Clostridiales	Clostridia	Firmicutes	Bacteria	
+HL-14		Clostridiaceae	Clostridiales	Clostridia	Firmicutes	Bacteria	
+HL-15	Blautia	Lachnospiraceae	Clostridiales	Clostridia	Firmicutes	Bacteria	
+HL-16			Clostridiales	Clostridia	Firmicutes	Bacteria	
+HL-17	Odoribacter	Porphyromonadaceae	Bacteroidales	Bacteroidia	Bacteroidetes	Bacteria	
+HL-18	Clostridium	Clostridiaceae	Clostridiales	Clostridia	Firmicutes	Bacteria	
+HL-19	unclassified Lachnospiraceae	Lachnospiraceae	Clostridiales	Clostridia	Firmicutes	Bacteria	
+HL-20	Blautia	Lachnospiraceae	Clostridiales	Clostridia	Firmicutes	Bacteria	
+HL-21		Clostridiaceae	Clostridiales	Clostridia	Firmicutes	Bacteria	
+HL-22		Lachnospiraceae	Clostridiales	Clostridia	Firmicutes	Bacteria	
+HL-23		Ruminococcaceae	Clostridiales	Clostridia	Firmicutes	Bacteria	
+HL-24	Clostridium	Clostridiaceae	Clostridiales	Clostridia	Firmicutes	Bacteria	
+HL-25	Methanobrevibacter	Methanobacteriaceae	Methanobacteriales	Methanobacteria	Euryarchaeota	Archaea	
+HL-26			Clostridiales	Clostridia	Firmicutes	Bacteria	
+HL-27		Ruminococcaceae	Clostridiales	Clostridia	Firmicutes	Bacteria	
+HL-28					Firmicutes	Bacteria	
+HL-29	unclassified Lachnospiraceae	Lachnospiraceae	Clostridiales	Clostridia	Firmicutes	Bacteria	
+HL-30		Lachnospiraceae	Clostridiales	Clostridia	Firmicutes	Bacteria	
+HL-31			Clostridiales	Clostridia	Firmicutes	Bacteria	
+HL-32				Clostridia	Firmicutes	Bacteria	
+HL-33			Clostridiales	Clostridia	Firmicutes	Bacteria	
+HL-34	Coprococcus	Lachnospiraceae	Clostridiales	Clostridia	Firmicutes	Bacteria	
+HL-35						Bacteria	
+HL-36	Clostridium	Clostridiaceae	Clostridiales	Clostridia	Firmicutes	Bacteria	
+HL-37			Clostridiales	Clostridia	Firmicutes	Bacteria	
+HL-38	Clostridium	Clostridiaceae	Clostridiales	Clostridia	Firmicutes	Bacteria	
+HL-39		Ruminococcaceae	Clostridiales	Clostridia	Firmicutes	Bacteria	
+HL-40			Clostridiales	Clostridia	Firmicutes	Bacteria	
+HL-41			Clostridiales	Clostridia	Firmicutes	Bacteria	
+HL-42	Clostridium	Clostridiaceae	Clostridiales	Clostridia	Firmicutes	Bacteria	
+HL-43	unclassified Lachnospiraceae	Lachnospiraceae	Clostridiales	Clostridia	Firmicutes	Bacteria	
+HL-44		Lachnospiraceae	Clostridiales	Clostridia	Firmicutes	Bacteria	
+HL-45			Clostridiales	Clostridia	Firmicutes	Bacteria	
+HL-46	Alistipes	Rikenellaceae	Bacteroidales	Bacteroidia	Bacteroidetes	Bacteria	
+HL-47			Clostridiales	Clostridia	Firmicutes	Bacteria	
+HL-48	Faecalibacterium	Ruminococcaceae	Clostridiales	Clostridia	Firmicutes	Bacteria	
+HL-49	Clostridium	Clostridiaceae	Clostridiales	Clostridia	Firmicutes	Bacteria	
+HL-50							
+HL-51			Clostridiales	Clostridia	Firmicutes	Bacteria	
+HL-52							
+HL-53			Clostridiales	Clostridia	Firmicutes	Bacteria	
+HL-54	Faecalibacterium	Ruminococcaceae	Clostridiales	Clostridia	Firmicutes	Bacteria	
+HL-55							
+HL-56	Coprobacillus	Erysipelotrichaceae	Erysipelotrichales	Erysipelotrichi	Firmicutes	Bacteria	
+HL-57	Clostridium	Clostridiaceae	Clostridiales	Clostridia	Firmicutes	Bacteria	
+HL-58	Clostridium	Clostridiaceae	Clostridiales	Clostridia	Firmicutes	Bacteria	
