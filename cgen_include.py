@@ -15,25 +15,7 @@ def extractFeatures(all_data):
         split_data[data] = {}
         split_data[data]['features'] = features
         split_data[data]['feature_cols'] = feature_cols
-        split_data[data]['class_data'] = other
-    return split_data
-    
-def scaleData(scaler, updated_cols, feature_data):
-    scaled_data = {}
-    for data in feature_data:
-        scaled = scaler.transform(feature_data[data])
-        scaled = pd.DataFrame(scaled)
-        scaled.columns = updated_cols
-        scaled_data[data] = scaled
-    return scaled_data
-    
-def combineFeaturesAndClasses(scaled_data, feature_data, headers):
-    split_data = {}
-    for data in scaled_data:
-        split_data[data] = {}
-        split_data[data]['features'] = scaled_data[data]
-        split_data[data]['classes'] = feature_data[data]['class_data']
-        split_data[data]['feature_cols'] = headers
+        split_data[data]['classes'] = other
     return split_data
     
 def combineDatasets(datasets):
@@ -45,7 +27,7 @@ def combineDatasets(datasets):
         new_sets.append(dset[inter_cols])
     return (pd.concat(new_sets))
     
-def splitScaleSeparate(data, random_seed, add_poly_features, deg, threshold):
+def splitDataset(data, random_seed):
     #Get column headers
     col_headers = list(data.columns.values)
     feature_cols = copy.deepcopy(col_headers)
@@ -67,42 +49,56 @@ def splitScaleSeparate(data, random_seed, add_poly_features, deg, threshold):
     
     #Separate features and classes
     all_data = {'train': train, 'valid': validate, 'test': test}
-    feature_data = extractFeatures(all_data)
-    train_features = feature_data['train']['features']
-    valid_features = feature_data['valid']['features']
-    test_features = feature_data['test']['features']
+    return extractFeatures(all_data)
     
-    #Add poly features if requested and select
-    if add_poly_features:
-        train_fit = preprocessing.PolynomialFeatures(degree=deg, include_bias=False).fit(train_features)
-        new_columns = []
-        poly_arr = train_fit.powers_
-        for i in range(0, len(poly_arr)):
-            out_name = 'F'
-            for j in range(0, len(poly_arr[i])):
-                if poly_arr[i][j] > 0:
-                    out_name = out_name + '_' + str(j) + '^' + str(poly_arr[i][j])
-            new_columns.append(out_name)
-        train_features = train_fit.transform(train_features)
-        train_features = pd.DataFrame(train_features)
-        train_features.columns = new_columns
-        valid_features = preprocessing.PolynomialFeatures(degree=deg, include_bias=False).fit_transform(valid_features)
-        valid_features = pd.DataFrame(valid_features)
-        valid_features.columns = new_columns
-        test_features = preprocessing.PolynomialFeatures(degree=deg, include_bias=False).fit_transform(test_features)
-        test_features = pd.DataFrame(test_features)
-        test_features.columns = new_columns
-        selector = feature_selection.VarianceThreshold(threshold).fit(train_features)
-        select_support = selector.get_support(True)
-        updated_cols = [new_columns[i] for i in select_support]
-        train_features = selector.transform(train_features)
-        valid_features = selector.transform(valid_features)
-        test_features = selector.transform(test_features)
-    else:
-        updated_cols = feature_cols
+def addPolyFeatures(data, deg):
+    train_features = data['train']['features']
+    valid_features = data['valid']['features']
+    test_features = data['test']['features']
     
-    #Scale data to same scale, using train data to find the scale
-    scaler = preprocessing.MinMaxScaler().fit(train_features)
-    to_scale_data = {'train': train_features, 'valid': valid_features, 'test': test_features}
-    scaled_data = scaleData(scaler, updated_cols, to_scale_data)
-    return combineFeaturesAndClasses(scaled_data, feature_data, feature_cols)
+    train_fit = preprocessing.PolynomialFeatures(degree=deg, include_bias=False).fit(train_features)
+    new_columns = []
+    poly_arr = train_fit.powers_
+    for i in range(0, len(poly_arr)):
+        out_name = 'F'
+        for j in range(0, len(poly_arr[i])):
+            if poly_arr[i][j] > 0:
+                out_name = out_name + '_' + str(j) + '^' + str(poly_arr[i][j])
+        new_columns.append(out_name)
+    train_features = train_fit.transform(train_features)
+    train_features = pd.DataFrame(train_features)
+    train_features.columns = new_columns
+    data['train']['features'] = train_features
+    valid_features = preprocessing.PolynomialFeatures(degree=deg, include_bias=False).fit_transform(valid_features)
+    valid_features = pd.DataFrame(valid_features)
+    valid_features.columns = new_columns
+    data['valid']['features'] = valid_features
+    test_features = preprocessing.PolynomialFeatures(degree=deg, include_bias=False).fit_transform(test_features)
+    test_features = pd.DataFrame(test_features)
+    test_features.columns = new_columns
+    data['test']['features'] = test_features
+    return data
+    
+def selectFeatures(data, num_best):
+    selector = feature_selection.SelectKBest(k=num_best).fit(data['train']['features'], data['train']['classes'])
+    select_support = selector.get_support(True)
+    updated_cols = [data['train']['features'].columns[i] for i in select_support]
+    data['train']['features'] = selector.transform(data['train']['features'])
+    data['valid']['features'] = selector.transform(data['valid']['features'])
+    data['test']['features'] = selector.transform(data['test']['features'])
+    data['train']['features'] = pd.DataFrame(data['train']['features'])
+    data['valid']['features'] = pd.DataFrame(data['valid']['features'])
+    data['test']['features'] = pd.DataFrame(data['test']['features'])
+    data['train']['features'].columns = updated_cols
+    data['valid']['features'].columns = updated_cols
+    data['test']['features'].columns = updated_cols
+    return data
+    
+def scaleFeatures(data):
+    scaler = preprocessing.MinMaxScaler().fit(data['train']['features'])
+    updated_cols = data['train']['features'].columns
+    for dtype in data:
+        data[dtype]['features'] = scaler.transform(data[dtype]['features'])
+        data[dtype]['features'] = pd.DataFrame(data[dtype]['features'])
+        data[dtype]['features'].columns = updated_cols
+    return data

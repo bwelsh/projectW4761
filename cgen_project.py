@@ -167,10 +167,7 @@ datasets = {'perio': {'taxas': ['domain', 'phylum', 'class', 'order', 'family', 
 #res = aggregateBestParameters(datasets, parameters, random_seed)   
 #print (res)
 
-#TODO pipeline functions
 #TODO scoring
-#TODO can I extract other features?
-#TODO additional ML techniques (mess with existing and any others)
 #TODO multi-class classification
 
 #curr_data = getOrigData(random_seed, False, True)
@@ -180,10 +177,16 @@ richness_data = getRichnessData(random_seed, ['phylum', 'genus'], 30)
 catalog_data = getCatalogData(random_seed, ['phylum', 'genus'], 30)
 data = combineDatasets([perio_data, richness_data, catalog_data])
 '''
+#FIXME cd /home/barbara/Documents/genomics/project/projectW4761
+
 #curr_data = [getRichnessData(random_seed, ['phylum', 'domain'], 30, False, 2, 0.0001)]
 data = getPerioData(random_seed, ['species'])
 #data = getRichnessData(random_seed, ['phylum', 'genus'], 30)
 #curr_data = [getPerioData(random_seed, ['phylum', 'domain'], False, 2, 0.0001), getPerioData(random_seed, ['phylum', 'domain'], True, 2, 0.0001)]
-
-curr_data = [splitScaleSeparate(data, random_seed, False, 2, 0)]
+data = splitDataset(data, random_seed)
+#data = addPolyFeatures(data, 2)
+#data = selectFeatures(data, 100)
+data = scaleFeatures(data)
+print (data['train'].keys())
+curr_data = [data]
 fitAndPlot(parameters, curr_data, 1)
