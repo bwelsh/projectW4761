@@ -17,18 +17,25 @@ import random
 import csv
 import math
 import sklearn
+from cgen_include import *
 
 ### Functions ###
 
-def loadData(file_name):
+def loadData(file_name, taxas):
     """
     TODO
     """
     data = []
-    #headers = ['x', 'y', 'label']
     line_count = 0
     f = open(file_name)
     contents = csv.reader(f, delimiter=',')
+    feature_dict = {'order': {'Erysipelotrichaceae': 'Erysiopelotrichales', 'Neisseriaceae': 'Neisseriales', 'Clostridiales': 'Clostridiales', 'Pasteurellaceae': 'Pasteurellales', 'Bifidobacteriaceae': 'Bifidobacteriales', 'Fusobacteriaceae': 'Fusobacteriales', 'Veillonellaceae': 'Selenomonadales', 'Enterobacteriaceae': 'Enterobacteriales', 'Micrococcaceae': 'Actinomycetales', 'Verrucomicrobiaceae': 'Verrucomicrobiales', 'Gemellaceae': 'Gemellales', 'Coriobacteriaceae': 'Coriobacteriales', 'Bacteroidales': 'Bacteroidales'}, 'phylum': {'Erysipelotrichaceae': 'Firmicutes', 'Neisseriaceae': 'Proteobacteria', 'Clostridiales': 'Firmicutes', 'Pasteurellaceae': 'Proteobacteria', 'Bifidobacteriaceae': 'Acinobacteria', 'Fusobacteriaceae': 'Fusobacteriales', 'Veillonellaceae': 'Firmicutes', 'Enterobacteriaceae': 'Proteobacteria', 'Micrococcaceae': 'Acinobacteria', 'Verrucomicrobiaceae': 'Verrucomicrobia', 'Gemellaceae': 'Firmicutes', 'Coriobacteriaceae': 'Acinobacteria', 'Bacteroidales': 'Bacteroidetes'}}
+    feature_map = {}
+    data_columns = ['Sample', 'Diagnosis']
+    for level in taxas:
+        for item in feature_dict[level]:
+            data_columns.append(feature_dict[level][item]+'_'+level)
+            feature_map[feature_dict[level][item]+'_'+level] = item
     #Loop through each line of the file
     ix = 1
     for line in contents:
@@ -37,17 +44,21 @@ def loadData(file_name):
         else:
             #Put the data into dict with header as label
             ln_dict = {} 
-            for i in range(0, len(headers)):
+            for col in data_columns:
                 #bacterial percentages
-                if i > 6:
-                    ln_dict[headers[i]] = float(line[i])
-                elif headers[i] == 'Diagnosis':
-                    if line[i] == 'CD':
-                        ln_dict[headers[i]] = 1
+                if col == 'Diagnosis':
+                    if line[headers.index(col)] == 'CD':
+                        ln_dict[col] = 1
                     else:
-                        ln_dict[headers[i]] = -1
+                        ln_dict[col] = -1
+                elif col == 'Sample':
+                    ln_dict[col] = line[headers.index('subject')]
                 else:
-                    ln_dict[headers[i]] = line[i]
+                    col_ix = headers.index(feature_map[col])
+                    if col in ln_dict:
+                        ln_dict[col] = ln_dict[col] + float(line[col_ix])
+                    else:
+                        ln_dict[col] = float(line[col_ix])
             data.append(ln_dict)
         ix += 1
     f.close()
@@ -59,7 +70,6 @@ def createSplit(df, type):
     cd_arr = []
     cd_df = df[df['Diagnosis'] == 1]
     no_df = df[df['Diagnosis'] == -1]
-    # FIX THIS, balancing the dataset
     if type == 'test':
         if diagnosis_counts[1] > diagnosis_counts[-1]:
             diff = diagnosis_counts[1] - diagnosis_counts[-1]
@@ -77,105 +87,26 @@ def createSplit(df, type):
     
 def splitFeaturesClasses(df, features, class_col):
     return df[features], df[class_col]
-    
-def addPhyla(feature_data):
-    for data in feature_data:
-        feature_data[data]['Firmicutes'] = feature_data[data]['Erysipelotrichaceae'] + feature_data[data]['Veillonellaceae'] + feature_data[data]['Clostridiales'] + feature_data[data]['Gemellaceae'] 
-        feature_data[data]['Proteobacteria'] = feature_data[data]['Neisseriaceae'] + feature_data[data]['Enterobacteriaceae'] + feature_data[data]['Pasteurellaceae']
-        feature_data[data]['Acinobacteria'] = feature_data[data]['Micrococcaceae'] + feature_data[data]['Coriobacteriaceae'] + feature_data[data]['Bifidobacteriaceae']
-    return feature_data
-    
-def getOrigData(random_seed, with_poly, with_phyla):
-    file = '/home/barbara/Documents/genomics/project/samples_1040.csv'
-    feature_cols = ['Erysipelotrichaceae', 'Neisseriaceae', 'Clostridiales', 'Pasteurellaceae', 'Bifidobacteriaceae', 'Fusobacteriaceae', 'Veillonellaceae', 'Enterobacteriaceae', 'Micrococcaceae', 'Verrucomicrobiaceae', 'Gemellaceae', 'Coriobacteriaceae', 'Bacteroidales']
+ 
+def getOrigSplitData(random_seed, taxas):
+    file = 'samples_1040.csv'
+    df = loadData(file, taxas)
     target_col = ['Diagnosis']
-    df = loadData(file)
+    feature_cols = list(df.columns.values)
+    feature_cols.remove('Sample')
+    feature_cols.remove('Diagnosis')
+    
+    #This dataset is very skewed (not evenly split between disease and health for diagnosis). I didn't want to rely on the standard train_test_split function and so wrote a custom function to do the split for this data.
     test_df, train_df = createSplit(df, 'test')
     valid_df, train_df = createSplit(train_df, 'valid')
     train_features, train_classes = splitFeaturesClasses(train_df, feature_cols, target_col)
     valid_features, valid_classes = splitFeaturesClasses(valid_df, feature_cols, target_col)
     test_features, test_classes = splitFeaturesClasses(test_df, feature_cols, target_col)
     
-    head_cols = train_features.columns
-    scaler = preprocessing.StandardScaler().fit(train_features)
-    scaled_train = scaler.transform(train_features)
-    scaled_train = pd.DataFrame(scaled_train)
-    scaled_train.columns = head_cols
-    scaled_valid = scaler.transform(valid_features)
-    scaled_valid = pd.DataFrame(scaled_valid)
-    scaled_valid.columns = head_cols
-    scaled_test = scaler.transform(test_features)
-    scaled_test = pd.DataFrame(scaled_test)
-    scaled_test.columns = head_cols
+    return {'train': {'features': train_features, 'classes': train_classes, 'feature_cols': feature_cols}, 'valid': {'features': valid_features, 'classes': valid_classes, 'feature_cols': feature_cols}, 'test': {'features': test_features, 'classes': test_classes, 'feature_cols': feature_cols}}
     
-    feature_class_split = {'train': {'features': scaled_train, 'classes': train_classes, 'feature_cols': head_cols}, 'validate': {'features': scaled_valid, 'classes': valid_classes, 'feature_cols': head_cols}, 'test': {'features': scaled_test, 'classes': test_classes, 'feature_cols': head_cols}}
-    
-    feature_data = addPhyla({'train': train_features, 'valid': valid_features, 'test': test_features})
-    train_features = feature_data['train']
-    valid_features = feature_data['valid']
-    test_features = feature_data['test']
-    phyla_cols = train_features.columns
-    
-    scaler = preprocessing.StandardScaler().fit(train_features)
-    scaled_train = scaler.transform(train_features)
-    scaled_train = pd.DataFrame(scaled_train)
-    scaled_train.columns = phyla_cols
-    scaled_valid = scaler.transform(valid_features)
-    scaled_valid = pd.DataFrame(scaled_valid)
-    scaled_valid.columns = phyla_cols
-    scaled_test = scaler.transform(test_features)
-    scaled_test = pd.DataFrame(scaled_test)
-    scaled_test.columns = phyla_cols
-    
-    feature_class_phyla = {'train': {'features': scaled_train, 'classes': train_classes, 'feature_cols': phyla_cols}, 'validate': {'features': scaled_valid, 'classes': valid_classes, 'feature_cols': phyla_cols}, 'test': {'features': scaled_test, 'classes': test_classes, 'feature_cols': phyla_cols}}
-    
-    
-    #Poly features added here
-    
-    train_fit = preprocessing.PolynomialFeatures(degree=2, include_bias=False).fit(train_features)
-    poly_columns = []
-    poly_arr = train_fit.powers_
-    for i in range(0, len(poly_arr)):
-        out_name = 'F'
-        for j in range(0, len(poly_arr[i])):
-            if poly_arr[i][j] > 0:
-                out_name = out_name + '_' + str(j) + '^' + str(poly_arr[i][j])
-        poly_columns.append(out_name)
-    #print (poly_columns)
-    train_features = train_fit.transform(train_features)
-    train_features = pd.DataFrame(train_features)
-    train_features.columns = poly_columns
-    valid_features = preprocessing.PolynomialFeatures(degree=2, include_bias=False).fit_transform(valid_features)
-    valid_features = pd.DataFrame(valid_features)
-    valid_features.columns = poly_columns
-    test_features = preprocessing.PolynomialFeatures(degree=2, include_bias=False).fit_transform(test_features)
-    test_features = pd.DataFrame(test_features)
-    test_features.columns = poly_columns
-    #Feature selection added here
-    selector = feature_selection.VarianceThreshold(0.00001).fit(train_features)
-    select_support = selector.get_support(True)
-    select_feature_cols = [poly_columns[i] for i in select_support]
-    train_features = selector.transform(train_features)
-    valid_features = selector.transform(valid_features)
-    test_features = selector.transform(test_features)
-    
-    scaler = preprocessing.StandardScaler().fit(train_features)
-    scaled_train = scaler.transform(train_features)
-    scaled_train = pd.DataFrame(scaled_train)
-    scaled_train.columns = select_feature_cols
-    scaled_valid = scaler.transform(valid_features)
-    scaled_valid = pd.DataFrame(scaled_valid)
-    scaled_valid.columns = select_feature_cols
-    scaled_test = scaler.transform(test_features)
-    scaled_test = pd.DataFrame(scaled_test)
-    scaled_test.columns = select_feature_cols
-    
-    feature_class_select = {'train': {'features': scaled_train, 'classes': train_classes, 'feature_cols': head_cols}, 'validate': {'features': scaled_valid, 'classes': valid_classes, 'feature_cols': head_cols}, 'test': {'features': scaled_test, 'classes': test_classes, 'feature_cols': head_cols}}    
-    
-    return_features = [feature_class_split]
-    if with_phyla:
-        return_features.append(feature_class_phyla)
-    if with_poly:
-        return_features.append(feature_class_select)
-    return return_features
+res = getOrigSplitData(4, ['order'])
+print (res['train']['features'][:1])
+scaled = scaleFeatures(res)
+print (scaled['train']['features'][:1])
     

@@ -145,7 +145,7 @@ def getTaxa(subject_data):
         for taxa in subject_data[subject]:
             if taxa != 'total':
                 for tax_cat in subject_data[subject][taxa]:
-                    tax_categories[taxa].append(tax_cat)
+                    tax_categories[taxa].append(tax_cat+'_'+taxa)
     for cat in tax_categories:
         tax_categories[cat] = set(tax_categories[cat])
         tax_categories[cat] = list(tax_categories[cat])
@@ -159,7 +159,6 @@ def collateData(sub_data, taxas, taxa_levels, disease_status):
         for item in taxas[lev]:
             headers.append(item)
     for subject in sub_data:
-        #TODO fix this? we don't want reads from unmapped subjects
         if subject != 'unmapped':
             ln_data = {}
             for head in headers:
@@ -177,8 +176,9 @@ def collateData(sub_data, taxas, taxa_levels, disease_status):
                     for tax in taxas:
                         if head in taxas[tax]:
                             taxa_level = tax
-                    if head in sub_data[subject][taxa_level]:
-                        ln_data[head] = float(sub_data[subject][taxa_level][head]) / sub_data[subject]['total']
+                    hd, tx = head.split('_')
+                    if hd in sub_data[subject][taxa_level]:
+                        ln_data[head] = float(sub_data[subject][taxa_level][hd]) / sub_data[subject]['total']
                     else:
                         ln_data[head] = 0
             data.append(ln_data)
@@ -189,7 +189,6 @@ def getCatalogData(random_seed, taxa_levels, disease_bmi_threshold):
     diagnosis_file = 'catalog_diagnosis.txt'
     
     #TODO do I want to add a feature for the unique counts by taxa (like unique species)?
-    #TODO feature selection even at the phylum level?
     
     taxas = getTaxa(sub_data)
     disease_mapping = loadDiseaseDict(diagnosis_file, disease_bmi_threshold)

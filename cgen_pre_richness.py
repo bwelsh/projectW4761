@@ -25,8 +25,8 @@ def getTaxa(file):
                     clusters[clust][taxa_order[i]] = 'Unknown_'+taxa_order[i]
             for i in range(0, len(lineage)):
                 if lineage[i] != '':
-                    tax_categories[taxa_order[i]].append(lineage[i].strip())
-                    clusters[clust][taxa_order[i]] = lineage[i].strip()
+                    tax_categories[taxa_order[i]].append(lineage[i].strip()+'_'+taxa_order[i])
+                    clusters[clust][taxa_order[i]] = lineage[i].strip()+'_'+taxa_order[i]
                 else:
                     clusters[clust][taxa_order[i]] = 'Unknown_'+taxa_order[i]
         count += 1

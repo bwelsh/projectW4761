@@ -80,6 +80,7 @@ def addPolyFeatures(data, deg):
     return data
     
 def selectFeatures(data, num_best):
+    num_best = min(num_best, len(data['train']['features'].columns.values))
     selector = feature_selection.SelectKBest(k=num_best).fit(data['train']['features'], data['train']['classes'])
     select_support = selector.get_support(True)
     updated_cols = [data['train']['features'].columns[i] for i in select_support]
@@ -102,3 +103,22 @@ def scaleFeatures(data):
         data[dtype]['features'] = pd.DataFrame(data[dtype]['features'])
         data[dtype]['features'].columns = updated_cols
     return data
+    
+def assessFit(predict_results, actual_results):
+    counts = actual_results['Diagnosis'].value_counts()
+    cd_count = counts[1]
+    no_count = counts[-1]
+    results = {'correct': {1: 0, -1: 0}, 'incorrect': {1: 0, -1: 0}}
+    for i in range(0, len(predict_results)):
+        if actual_results.iloc[i,0] == 1:
+            if predict_results[i] == 1:
+                results['correct'][predict_results[i]] += 1
+            else:
+                results['incorrect'][predict_results[i]] += 1
+        else:
+            if predict_results[i] == -1:
+                results['correct'][predict_results[i]] += 1
+            else:
+                results['incorrect'][predict_results[i]] += 1
+    confusion = {'TPR': float(results['correct'][1])/float(results['correct'][1]+results['incorrect'][-1]), 'FPR': float(results['incorrect'][1])/float(results['incorrect'][1]+results['correct'][-1]), 'TNR': float(results['correct'][-1])/float(results['incorrect'][1]+results['correct'][-1]), 'FNR': float(results['incorrect'][-1])/float(results['correct'][1]+results['incorrect'][-1])}
+    return confusion
