@@ -1,8 +1,6 @@
 import numpy as np
 import pandas as pd
 import math
-from sklearn.cross_validation import train_test_split
-from sklearn import preprocessing
 from cgen_include import *
 
 ###Functions###

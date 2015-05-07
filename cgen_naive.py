@@ -1,25 +1,23 @@
-import sys
-import json
-import random
 import csv
 import numpy as np
 import pandas as pd
 import math
-from sklearn.cross_validation import train_test_split
-from sklearn import preprocessing
 from cgen_include import *
 
-###Functions###
+### Functions ###
 
-def loadData(file_name):
-    """
-    TODO
-    """
+def loadData(file_name, taxas):
     data = []
-    #headers = ['x', 'y', 'label']
     line_count = 0
     f = open(file_name)
     contents = csv.reader(f, delimiter=',')
+    feature_dict = {'order': {'Erysipelotrichaceae': 'Erysiopelotrichales', 'Neisseriaceae': 'Neisseriales', 'Clostridiales': 'Clostridiales', 'Pasteurellaceae': 'Pasteurellales', 'Bifidobacteriaceae': 'Bifidobacteriales', 'Fusobacteriaceae': 'Fusobacteriales', 'Veillonellaceae': 'Selenomonadales', 'Enterobacteriaceae': 'Enterobacteriales', 'Micrococcaceae': 'Actinomycetales', 'Verrucomicrobiaceae': 'Verrucomicrobiales', 'Gemellaceae': 'Gemellales', 'Coriobacteriaceae': 'Coriobacteriales', 'Bacteroidales': 'Bacteroidales'}, 'phylum': {'Erysipelotrichaceae': 'Firmicutes', 'Neisseriaceae': 'Proteobacteria', 'Clostridiales': 'Firmicutes', 'Pasteurellaceae': 'Proteobacteria', 'Bifidobacteriaceae': 'Acinobacteria', 'Fusobacteriaceae': 'Fusobacteriales', 'Veillonellaceae': 'Firmicutes', 'Enterobacteriaceae': 'Proteobacteria', 'Micrococcaceae': 'Acinobacteria', 'Verrucomicrobiaceae': 'Verrucomicrobia', 'Gemellaceae': 'Firmicutes', 'Coriobacteriaceae': 'Acinobacteria', 'Bacteroidales': 'Bacteroidetes'}}
+    feature_map = {}
+    data_columns = ['Sample', 'Diagnosis']
+    for level in taxas:
+        for item in feature_dict[level]:
+            data_columns.append(feature_dict[level][item]+'_'+level)
+            feature_map[feature_dict[level][item]+'_'+level] = item
     #Loop through each line of the file
     ix = 1
     for line in contents:
@@ -28,17 +26,21 @@ def loadData(file_name):
         else:
             #Put the data into dict with header as label
             ln_dict = {} 
-            for i in range(0, len(headers)):
+            for col in data_columns:
                 #bacterial percentages
-                if i > 6:
-                    ln_dict[headers[i]] = float(line[i])
-                elif headers[i] == 'Diagnosis':
-                    if line[i] == 'CD':
-                        ln_dict[headers[i]] = 1
+                if col == 'Diagnosis':
+                    if line[headers.index(col)] == 'CD':
+                        ln_dict[col] = 1
                     else:
-                        ln_dict[headers[i]] = -1
+                        ln_dict[col] = -1
+                elif col == 'Sample':
+                    ln_dict[col] = line[headers.index('subject')]
                 else:
-                    ln_dict[headers[i]] = line[i]
+                    col_ix = headers.index(feature_map[col])
+                    if col in ln_dict:
+                        ln_dict[col] = ln_dict[col] + float(line[col_ix])
+                    else:
+                        ln_dict[col] = float(line[col_ix])
             data.append(ln_dict)
         ix += 1
     f.close()
@@ -50,7 +52,6 @@ def createSplit(df, type):
     cd_arr = []
     cd_df = df[df['Diagnosis'] == 1]
     no_df = df[df['Diagnosis'] == -1]
-    # FIX THIS, balancing the dataset
     if type == 'test':
         if diagnosis_counts[1] > diagnosis_counts[-1]:
             diff = diagnosis_counts[1] - diagnosis_counts[-1]
@@ -68,34 +69,21 @@ def createSplit(df, type):
     
 def splitFeaturesClasses(df, features, class_col):
     return df[features], df[class_col]
+ 
+def getOrigSplitData(random_seed, taxas):
+    file = 'samples_1040.csv'
+    df = loadData(file, taxas)
+    target_col = ['Diagnosis']
+    feature_cols = list(df.columns.values)
+    feature_cols.remove('Sample')
+    feature_cols.remove('Diagnosis')
     
-###Main###
-file = 'samples_1040.csv'
-random_seed = 4
-random.seed(random_seed)
-feature_cols = ['Erysipelotrichaceae', 'Neisseriaceae', 'Clostridiales', 'Pasteurellaceae', 'Bifidobacteriaceae', 'Fusobacteriaceae', 'Veillonellaceae', 'Enterobacteriaceae', 'Micrococcaceae', 'Verrucomicrobiaceae', 'Gemellaceae', 'Coriobacteriaceae', 'Bacteroidales']
-target_col = ['Diagnosis']
-df = loadData(file)
-test_df, train_df = createSplit(df, 'test')
-valid_df, train_df = createSplit(train_df, 'valid')
-train_features, train_classes = splitFeaturesClasses(train_df, feature_cols, target_col)
-valid_features, valid_classes = splitFeaturesClasses(valid_df, feature_cols, target_col)
-test_features, test_classes = splitFeaturesClasses(test_df, feature_cols, target_col)
-
-#Scale data to same scale, using train data to find the scale
-head_cols = train_features.columns
-scaler = preprocessing.StandardScaler().fit(train_features)
-scaled_train = scaler.transform(train_features)
-scaled_train = pd.DataFrame(scaled_train)
-scaled_train.columns = head_cols
-scaled_valid = scaler.transform(valid_features)
-scaled_valid = pd.DataFrame(scaled_valid)
-scaled_valid.columns = head_cols
-scaled_test = scaler.transform(test_features)
-scaled_test = pd.DataFrame(scaled_test)
-scaled_test.columns = head_cols
-        
-feature_class_split = {'train': {'features': scaled_train, 'classes': train_classes}, 'validate': {'features': scaled_valid, 'classes': valid_classes}, 'test': {'features': scaled_test, 'classes': test_classes}}
-
-#print (feature_class_split['test']['features'][:1])
-#print (feature_class_split['test']['classes'][:1])
+    #This dataset is very skewed (not evenly split between disease and health for diagnosis). I didn't want to rely on the standard train_test_split function and so wrote a custom function to do the split for this data.
+    test_df, train_df = createSplit(df, 'test')
+    valid_df, train_df = createSplit(train_df, 'valid')
+    train_features, train_classes = splitFeaturesClasses(train_df, feature_cols, target_col)
+    valid_features, valid_classes = splitFeaturesClasses(valid_df, feature_cols, target_col)
+    test_features, test_classes = splitFeaturesClasses(test_df, feature_cols, target_col)
+    
+    return {'train': {'features': train_features, 'classes': train_classes, 'feature_cols': feature_cols}, 'valid': {'features': valid_features, 'classes': valid_classes, 'feature_cols': feature_cols}, 'test': {'features': test_features, 'classes': test_classes, 'feature_cols': feature_cols}}
+    

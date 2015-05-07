@@ -10,7 +10,7 @@ from sklearn.pipeline import Pipeline
 import random, csv, math
 from cgen_include import *
 from cgen_pre_perio import *
-from cgen_orig_data import *
+from cgen_naive import *
 from cgen_pre_richness import *
 from cgen_catalog import *
 from datetime import datetime
@@ -142,6 +142,7 @@ m_dataset = {'multi': ['order', 'phylum']}
 #datasets = {'perio': ['domain', 'phylum', 'class', 'order', 'family', 'genus', 'species']}
 
 print (datetime.now().time())
+aggregateBestParameters(datasets, parameters, random_seed, [2], 1) 
 aggregateBestParameters(datasets, parameters, random_seed, [1], 2) 
 aggregateBestParameters(p_dataset, parameters, random_seed, [3], 3) 
 aggregateBestParameters(r_dataset, parameters, random_seed, [3], 4) 

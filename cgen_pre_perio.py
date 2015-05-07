@@ -1,8 +1,6 @@
 import numpy as np
 import pandas as pd
 import math
-from sklearn.cross_validation import train_test_split
-from sklearn import preprocessing
 from cgen_include import *
 import copy
 
@@ -79,32 +77,3 @@ def getPerioData(random_seed, taxa_levels):
     for lev in taxa_levels:
         data.loc[:,taxas[lev][0]+"_"+lev:("Unknown_" +lev)] = data.loc[:,taxas[lev][0]+"_"+lev:"Unknown_" +lev].div(data.loc[:,taxas[lev][0]+"_"+lev:("Unknown_" +lev)].sum(axis=1), axis=0)
     return data
-    
-###Main###
-
-file = 'perio_data.txt'
-
-'''
-random_seed = 4
-taxa_order = ['domain', 'phylum', 'class', 'order', 'family', 'genus', 'species']
-taxa_level = 'phylum'
-
-#Load in data, taxas first and then sample data
-taxas = getTaxa(file)
-#print (taxas['phylum'])
-data = loadData(file, taxas[taxa_level], taxa_order.index(taxa_level))
-
-#Scale to percentages
-#print (data[:1])
-data.loc[:,taxas[taxa_level][0]:"Unknown"] = data.loc[:,taxas[taxa_level][0]:"Unknown"].div(data.sum(axis=1), axis=0)
-#print (data[1:2])
-
-#TODO make sure I handle the case where I want to use cross-validation instead of a validation set
-#TODO what if I want to remove features?
-
-feature_class_split = splitScaleSeparate(data, random_seed)
-
-#print (feature_class_split['test']['features'][:1])
-#print (feature_class_split['test']['classes'][:1])
-'''
-a=2

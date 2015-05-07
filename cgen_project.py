@@ -19,7 +19,7 @@ import math
 import sklearn
 from cgen_include import *
 from cgen_pre_perio import *
-from cgen_orig_data import *
+from cgen_naive import *
 from cgen_pre_richness import *
 from cgen_catalog import *
 from itertools import combinations
