@@ -140,6 +140,39 @@ def plotByDS(parameters, fig_num, data, best_params, ds, predict_sets):
     plt.title('ROC Space for different ML Techniques: ' + ds + ' dataset')
     plt.savefig('best_level_' + ds + '.png', bbox_inches='tight')
     
+    
+def plotCrossPredict(parameters, data, best_params, ds):
+    '''
+    Given data from each dataset with common features, this function trains each model using the best parameters and data from one dataset (passed in as ds), and uses it to predict the test data of every dataset, plotting the results in a bar chart
+    '''
+    ml_order = list(parameters.keys())
+    metric = {}
+    for dset in data:
+        metric[dset] = []
+    labels = []
+    for tech in ml_order:
+        labels.append(tech[:3])
+    for ml in ml_order:
+        for dset in data:
+            x, y = findBestModel(ml, best_params[ml]['params'], parameters[ml]['model'], data[ds]['train']['features'], data[ds]['train']['classes'], data[dset]['test']['features'], data[dset]['test']['classes'])
+            metric[dset].append((1-x[0])+y[0])
+    index = np.arange(len(ml_order))
+    bar_width = 0.18
+    fig, ax = plt.subplots()
+    colors = ['#66c2a5', '#fc8d62', '#8da0cb', '#e78ac3', '#a6d854']
+    count = 0
+    for dset in metric:
+        plt.bar(index+count*bar_width, metric[dset], bar_width, color=colors[count], label=dset)
+        count = count+1  
+       
+    plt.ylim(0, 2)
+    plt.xlabel('Technique')
+    plt.ylabel('Sensitivity + Specificity')
+    plt.title('Cross Prediction Score trained From ' + ds + ' dataset')
+    plt.xticks(index+bar_width*2.5, labels)
+    plt.legend(loc=4)
+    plt.savefig('cross_predict_' + ds + '.png', bbox_inches='tight')
+    
 def plotBest(parameters, fig_num, data, best_params, datasets, predict_sets):
     '''
     Given a dictionary of parameters, data from all datasets, the best parameters as calculated previously and which set(s) to use for assessing fit (validation set, test set or both), this function goes through each dataset and fits the best model only for that dataset with the best parameters as previously calculated, getting the TPR and FPR for the prediction set, then plotting those on a scatterplot by dataset.
@@ -167,7 +200,7 @@ def plotBest(parameters, fig_num, data, best_params, datasets, predict_sets):
     
 def getBestLevels(data, num_best):
     '''
-    Given data on model fit as previously calculated and a parameter for the top number of levels to return, this function goes through each dataset and orders the taxa levels by best to worst roc score, then chooses the top number of them (according to the value passed in) and puts them in a dictionary to return
+    Given data on model fit as previously calculated and a parameter for the top number of levels to consider, this function goes through each dataset and orders the taxa levels by best to worst roc score, using the mean of the num_best technisues, then chooses the top one and puts them in a dictionary to return
     '''
     best_levels = {}
     best_score = {}
@@ -226,6 +259,24 @@ def getBestFitData(best_fit, random_seed, with_poly, with_fs):
         curr_data = scaleFeatures(curr_data)
         best[ds] = curr_data
     return best
+    
+def getCommonFeatureData(random_seed):
+    '''
+    For the levels order and phylum (the only levels in every dataset), get the data for each dataset for the features that are common between the four datasets and return it
+    '''
+    levels = ['phylum', 'order']
+    curr_data = {}
+    curr_data['perio'] = scaleFeatures(splitDataset(getPerioData(random_seed, levels), random_seed))
+    curr_data['richness'] = scaleFeatures(splitDataset(getRichnessData(random_seed, levels, 30), random_seed))
+    curr_data['catalog'] = scaleFeatures(splitDataset(getCatalogData(random_seed, levels, 30), random_seed))
+    curr_data['naive'] = scaleFeatures(getOrigSplitData(random_seed, levels))
+    for d_type in ['train', 'valid', 'test']:
+        common_features = commonFeatureDatasets([curr_data['perio'][d_type]['features'], curr_data['richness'][d_type]['features'], curr_data['catalog'][d_type]['features'], curr_data['naive'][d_type]['features']])
+        curr_data['perio'][d_type]['features'] = common_features[0]
+        curr_data['richness'][d_type]['features'] = common_features[1]
+        curr_data['catalog'][d_type]['features'] = common_features[2]
+        curr_data['naive'][d_type]['features'] = common_features[3]
+    return curr_data
     
 def getBestTechnique(techs):
     '''
@@ -336,10 +387,10 @@ data = loadFittedData((1,5))
 #plotLevels(data)
 
 #Getting data for best levels and more plots
-'''
+
 best_levels = getBestLevels(data, 5)
-best_data = getBestFitData(best_levels, random_seed, False, False)
-'''
+#best_data = getBestFitData(best_levels, random_seed, False, False)
+
 #count = 1
 #for ds in best_levels:
     #plotByDS(parameters, count, best_data[ds], data[ds+'.'+best_levels[ds][0]], ds, {'valid': 'o', 'test': 'v'})
@@ -350,6 +401,12 @@ best_data = getBestFitData(best_levels, random_seed, False, False)
     #best_params[ds] = data[ds+'.'+best_levels[ds][0]]
     #best_tech[ds] = getBestTechnique(best_params[ds])
 #plotBest(parameters, 1, best_data, best_params, best_tech, {'valid': 'o', 'test': 'v'})
+
+#Use model trained on one dataset to predict test data on other datasets
+#cross_data = getCommonFeatureData(random_seed)
+#cross_params = {'perio': 'perio.phylum;order', 'naive': 'naive.order;phylum', 'catalog': 'catalog.phylum;order', 'richness': 'richness.order;phylum'}
+#for dset in cross_params:
+    #plotCrossPredict(parameters, cross_data, data[cross_params[dset]], dset)
 
 #Getting best forest and fitting to get feature importances
 #best_forests = getBestForest(data)

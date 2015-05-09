@@ -23,7 +23,7 @@ def extractFeatures(all_data):
     
 def combineDatasets(datasets):
     '''
-    Given a dictionary of dataframes, this function finds the common features (columns) between the dataframes and combines the dataframes into a single one containing only those features for all of the dataframes in the dictionary and returns that combined dataframe
+    Given a list of dataframes, this function finds the common features (columns) between the dataframes and combines the dataframes into a single one containing only those features for all of the dataframes in the dictionary and returns that combined dataframe
     '''
     inter_cols = datasets[0].columns.values
     new_sets = []
@@ -32,6 +32,18 @@ def combineDatasets(datasets):
     for dset in datasets:
         new_sets.append(dset[inter_cols])
     return (pd.concat(new_sets))
+    
+def commonFeatureDatasets(datasets):
+    '''
+    Given a list of dataframes, this function finds the common features (columns) between the dataframes and returns the dataframes with only those features that are common
+    '''
+    inter_cols = datasets[0].columns.values
+    new_sets = []
+    for dset in datasets:
+        inter_cols = list(set(inter_cols) & set(dset.columns.values))
+    for dset in datasets:
+        new_sets.append(dset[inter_cols])
+    return new_sets
     
 def splitDataset(data, random_seed):
     '''
