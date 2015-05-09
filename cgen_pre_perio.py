@@ -7,6 +7,9 @@ import copy
 ###Functions###
 
 def getTaxa(file):
+    '''
+    Given a file with the taxa info in it, create a dictionary of lists of microbial names at each taxa level that appear in the dataset
+    '''
     taxa_order = ['domain', 'phylum', 'class', 'order', 'family', 'genus', 'species']
     tax_categories = {'domain': [], 'phylum': [], 'class': [], 'order': [], 'family': [], 'genus': [], 'species': []}
     f = open(file)
@@ -26,6 +29,9 @@ def getTaxa(file):
     return tax_categories
     
 def loadData(file, cats, levels):
+    '''
+    Given a file, the microbial features at each taxa level, and a list of the taxa levels desired, create a  dataframe with the sample id, disease status and features for each of the taxa levels passed in.
+    '''
     data = []
     headers = ['Sample', 'Diagnosis']
     for lev in cats:
@@ -65,6 +71,9 @@ def loadData(file, cats, levels):
     return df
     
 def getPerioData(random_seed, taxa_levels):
+    '''
+    The "public" interface to this file, what the other files call in order to get the data for this dataset. The taxa levels desired are required.
+    '''
     file = 'perio_data.txt'
     taxa_order = ['domain', 'phylum', 'class', 'order', 'family', 'genus', 'species']
     taxas = getTaxa(file)

@@ -6,6 +6,9 @@ from cgen_include import *
 ###Functions###
 
 def getTaxa(file):
+    '''
+    Given a file with the taxa info in it, create a dictionary of lists of microbial names at each taxa level that appear in the dataset and a dictionary that maps the clusters in the dataset to a lineage
+    '''
     taxa_order = ['genus', 'family', 'order', 'class', 'phylum', 'domain']
     tax_categories = {'domain': [], 'phylum': [], 'class': [], 'order': [], 'family': [], 'genus': []}
     clusters = {}
@@ -36,6 +39,9 @@ def getTaxa(file):
     return tax_categories, clusters
     
 def loadData(file, cats, cluster_map, level, diagnosis_threshold):
+    '''
+    Given a file, the microbial features at each taxa level, a mapping of cluster to lineage, a list of the taxa levels desired, and a diagnosis threshold, create a dataframe with the sample id, disease status and features for each of the taxa levels passed in.
+    '''
     data = []
     headers = ['Sample', 'Diagnosis', 'Num_Genes']
     for lev in cats:
@@ -75,6 +81,9 @@ def loadData(file, cats, cluster_map, level, diagnosis_threshold):
     return df
     
 def getRichnessData(random_seed, taxa_levels, disease_bmi_threshold):
+    '''
+    The "public" interface to this file, what the other files call in order to get the data for this dataset. The taxa levels desired are required, along with the disease_bmi_threshold, in order to determine whether a sample is considered diseased or healthy, based on the bmi.
+    '''
     file = 'richness_data1.txt'
     sample_file = 'richness_data2.txt'
     taxas, cluster_map = getTaxa(file)

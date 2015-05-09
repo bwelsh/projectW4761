@@ -8,6 +8,9 @@ from cgen_include import *
 ###Functions###
     
 def loadSubjectMapping(file):
+    '''
+    Given a file, this maps the samples to the ids used in the data file
+    '''
     f = open(file)
     mapping = {}
     for line in f:
@@ -19,6 +22,9 @@ def loadSubjectMapping(file):
     return mapping
 
 def loadData(file, mapping):
+    '''
+    Given a file and subject mapping, this function aggregates the data on the reads by parsing the given lineages and counting the number of each type for each subject and storing it in a dict. Two other dictionaries are created with various taxonomic relationships in it, but turned out not to be needed in the implementation.
+    '''
     f = open(file)
     taxa_order = ['root', 'cell', 'domain', 'phylum', 'class', 'order', 'family', 'genus', 'species']
     taxonomy = {}
@@ -66,6 +72,9 @@ def loadData(file, mapping):
     return subj_dict, taxonomy, tax_categories
     
 def writeProcessedData(data, out_file_name):
+    '''
+    Given a dictionary and a file name, write this dictionary to the filename provided in json format.
+    '''
     with open(out_file_name, 'w') as out_file:
         json.dump(data, out_file)
         
@@ -76,6 +85,7 @@ in_file = 'UniqGene_NR.tax.catalog'
 map_file = 'Gene2Sample.list'
 diagnosis_file = 'catalog_diagnosis.txt'
 
+#This dataset is a little large. To avoid needing to keep working with it each time, this code takes the data and saves the relevant summary data (percentage of reads found for each feature) to a file
 md = loadSubjectMapping(map_file)
 sub_data, taxonomy, tax_categories = loadData(in_file, md)
 writeProcessedData(sub_data, 'sub_data.json')

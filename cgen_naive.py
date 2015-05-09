@@ -7,6 +7,9 @@ from cgen_include import *
 ### Functions ###
 
 def loadData(file_name, taxas):
+    '''
+    Given a file, and a list of taxa levels desired, create a dataframe with the sample id, disease status and feature columns. No lineage was provided for this data (and it was only provided at the order/family level, so some munging needed to happen to make the taxa levels consistent and provide phyla as well as orders).
+    '''
     data = []
     line_count = 0
     f = open(file_name)
@@ -48,6 +51,9 @@ def loadData(file_name, taxas):
     return pd.DataFrame(data)
 
 def createSplit(df, type):
+    '''
+    Given a dataframe, this splits the data so that there are an even number of positive and negative examples in the training set.
+    '''
     diagnosis_counts = df['Diagnosis'].value_counts()
     cd_arr = []
     cd_df = df[df['Diagnosis'] == 1]
@@ -68,9 +74,15 @@ def createSplit(df, type):
     return other_df, train_df
     
 def splitFeaturesClasses(df, features, class_col):
+    '''
+    This splits a dataframe into two, one with the features and one with the classes (ground truth)
+    '''
     return df[features], df[class_col]
  
 def getOrigSplitData(random_seed, taxas):
+    '''
+    The "public" interface to this file, what the other files call in order to get the data for this dataset. The taxa levels desired are required.
+    '''
     file = 'samples_1040.csv'
     df = loadData(file, taxas)
     target_col = ['Diagnosis']

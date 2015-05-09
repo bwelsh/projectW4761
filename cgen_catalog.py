@@ -8,11 +8,17 @@ from cgen_include import *
 ###Functions###
 
 def loadProcessedData(in_file_name):
+    '''
+    Given a files name, use the json parser to read in the data and return it
+    '''
     with open(in_file_name) as in_file:
         in_data = json.load(in_file)
     return in_data
     
 def loadDiseaseDict(file, threshold):
+    '''
+    Given the filename and a threshold, read in the data on disease status (either IBD/Not or BMI and if BMI, use threshold to determine disease status) and return a dictionary with the sample as the key and the disease status (1 for disease, -1 for healthy) as the value
+    '''
     f = open(file)
     mapping = {}
     headers = []
@@ -41,6 +47,9 @@ def loadDiseaseDict(file, threshold):
     return mapping
     
 def getTaxa(subject_data):
+    '''
+    Given a dictionary of sample data, create a dictionary of lists of microbial names at each taxa level that appear in the dataset
+    '''
     tax_categories = {'domain': [], 'phylum': [], 'class': [], 'order': [], 'family': [], 'genus': [], 'species': []}
     for subject in subject_data:
         for taxa in subject_data[subject]:
@@ -54,13 +63,16 @@ def getTaxa(subject_data):
     return tax_categories
     
 def collateData(sub_data, taxas, taxa_levels, disease_status):
+    '''
+    Given sample data, a dictionary of all of the microbial names at each taxa levels, a list of taxa levels to include, and the disease_status dictionary, create a dataframe with the features (microbial names) for the taxa levels passed in and fill in the values for each sample, along with the diseases status for each sample
+    '''
     data = []
     headers = ['Sample', 'Diagnosis', 'Num_Genes']
     for lev in taxa_levels:
         for item in taxas[lev]:
             headers.append(item)
     for subject in sub_data:
-        if subject != 'unmapped':
+        if subject != 'unmapped': #Some reads were not mapped to a sample, we need to ignore these
             ln_data = {}
             for head in headers:
                 if head == 'Sample':
@@ -86,6 +98,9 @@ def collateData(sub_data, taxas, taxa_levels, disease_status):
     return pd.DataFrame(data)
     
 def getCatalogData(random_seed, taxa_levels, disease_bmi_threshold):
+    '''
+    The "public" interface to this file, what the other files call in order to get the data for this dataset. The taxa levels desired are required, along with the disease_bmi_threshold, in order to determine whether a sample is considered diseased or healthy, based on the bmi.
+    '''
     sub_data = loadProcessedData('sub_data.json')
     diagnosis_file = 'catalog_diagnosis.txt'
     taxas = getTaxa(sub_data)

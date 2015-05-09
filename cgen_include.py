@@ -7,6 +7,9 @@ import copy
 
 ###Functions###
 def extractFeatures(all_data):
+    '''
+    Given a dictionary of dataframes, this function splits out the features from the classes and returns a dataframe with the features, a dataframe with the classes (ground truth) and a list of the features for each item in the dictionary
+    '''
     split_data = {}
     for data in all_data:
         features = all_data[data].drop(['Diagnosis', 'Sample'], axis=1)
@@ -19,6 +22,9 @@ def extractFeatures(all_data):
     return split_data
     
 def combineDatasets(datasets):
+    '''
+    Given a dictionary of dataframes, this function finds the common features (columns) between the dataframes and combines the dataframes into a single one containing only those features for all of the dataframes in the dictionary and returns that combined dataframe
+    '''
     inter_cols = datasets[0].columns.values
     new_sets = []
     for dset in datasets:
@@ -28,6 +34,9 @@ def combineDatasets(datasets):
     return (pd.concat(new_sets))
     
 def splitDataset(data, random_seed):
+    '''
+    Given a dataframe and a seed value, this function splits out the dataframe into a training set, a validation set, and a test set using the provided seed value for consistency. It uses a 60/20/20 split, but this could easily be parameterized and passed into the function. It returns a dictionary of dataframes with keys train, valid and test.
+    '''
     #Get column headers
     col_headers = list(data.columns.values)
     feature_cols = copy.deepcopy(col_headers)
@@ -52,6 +61,9 @@ def splitDataset(data, random_seed):
     return extractFeatures(all_data)
     
 def addPolyFeatures(data, deg):
+    '''
+    Given a dictionary of dataframes and a degree, this function adds polynomial features up to the degree provided to each feature dataframe and returns the dictionary with the enhanced feature set.
+    '''
     train_features = data['train']['features']
     valid_features = data['valid']['features']
     test_features = data['test']['features']
@@ -80,6 +92,9 @@ def addPolyFeatures(data, deg):
     return data
     
 def selectFeatures(data, num_best):
+    '''
+    Given a dictionary of dataframes and threshold (num_best), this function performs feature selection keeping the number of features passed in through num_best (or all features if the current feature set is less than the value passed it. It returned th dictionary with the selected features.
+    '''
     num_best = min(num_best, len(data['train']['features'].columns.values))
     selector = feature_selection.SelectKBest(k=num_best).fit(data['train']['features'], data['train']['classes'])
     select_support = selector.get_support(True)
@@ -96,6 +111,9 @@ def selectFeatures(data, num_best):
     return data
     
 def scaleFeatures(data):
+    '''
+    Given a dictionary of dataframes, this function scales the features dataframes to within the 0-1 scale. It returns the dictionary with the scaled features.
+    '''
     scaler = preprocessing.MinMaxScaler().fit(data['train']['features'])
     updated_cols = data['train']['features'].columns
     for dtype in data:
@@ -105,6 +123,9 @@ def scaleFeatures(data):
     return data
     
 def assessFit(predict_results, actual_results):
+    '''
+    Given a dataframe with predicted results from a model and the actual results, this function calculates the true positive, false positive, true negative and false negative rates and returns them in a dictionary.
+    '''
     counts = actual_results['Diagnosis'].value_counts()
     cd_count = counts[1]
     no_count = counts[-1]

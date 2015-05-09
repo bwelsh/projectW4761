@@ -1,18 +1,10 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-import matplotlib.cm as cm
 from sklearn import cross_validation as crossv
-from sklearn import linear_model, metrics, decomposition
-from sklearn import tree, naive_bayes
-from sklearn import ensemble
-from sklearn import neighbors
-from sklearn import cluster
+from sklearn import linear_model, metrics, decomposition, tree, naive_bayes, ensemble, neighbors, cluster, svm, grid_search, preprocessing, feature_selection
 from sklearn.neural_network import BernoulliRBM
 from sklearn.pipeline import Pipeline
-from sklearn import svm
-from sklearn import grid_search
-from sklearn import preprocessing, feature_selection
 import random
 import csv
 import math
@@ -27,7 +19,11 @@ from itertools import combinations
 ###Functions###
     
 def findBestModel(ml_type, parameters, model, train_features, train_classes, valid_features, valid_classes):
-    #TODO fix random state and getting right base
+    '''
+    Given a model with parameters and data, this function fits the model, then predicts based on this fit and assesses the fit of the model, returning the True Positive Rate and False Positive Rate
+    '''
+    #TODO I really should be getting the random state from a passed in value here
+    #TODO The base parameters will not work right for AdaBoost if the best base is not a tree, this needs to be fixed
     bases = {'Bagging': {'D': tree.DecisionTreeClassifier(max_depth=8, random_state=4)}, 'AdaBoost': {'D': tree.DecisionTreeClassifier(max_depth=8, random_state=4), 'A': ensemble.AdaBoostClassifier(n_estimators = 20, random_state=4), 'R': ensemble.RandomForestClassifier(max_depth=5, random_state=4)}}
     x = []
     y = []
@@ -39,32 +35,15 @@ def findBestModel(ml_type, parameters, model, train_features, train_classes, val
     result = clf.predict(valid_features)
     n_result = [x if x==1 else -1 for x in result]
     result = n_result
-    #print(ml_type + ":\n%s\n" % (metrics.classification_report(valid_classes.as_matrix(),result)))
     ft = assessFit(result, valid_classes)
     y.append(ft['TPR'])
     x.append(ft['FPR'])
     return x, y
-'''    
-def fitAndPlot(parameters, fig_num, best_fit):
-    fig = plt.figure(fig_num)
-    for ds in best_fit:
-        #x = []
-        #y = []
-        x, y, name_sub = findBestModel(best_fit[ds]['ml'], best_fit[ds]['params'], parameters[best_fit[ds]['ml']]['model'], best_fit[ds]['data']['train']['features'], best_fit[ds]['data']['train']['classes'], best_fit[ds]['data']['valid']['features'], best_fit[ds]['data']['valid']['classes'])
-        #x.append(x_sub)
-        #y.append(y_sub)
-        plt.scatter(x, y, c=parameters[best_fit[ds]['ml']]['color'], label = best_fit[ds]['ml'], linewidth=0, s=35)
-        plt.legend(loc=4)
-    plt.plot([0, 0.25, 0.5, 0.75, 1], [0, 0.25, 0.5, 0.75, 1], c='black')
-    plt.xlim(0, 1)
-    plt.ylim(0, 1)
-    plt.xlabel('False Positive')
-    plt.ylabel('True Positive')
-    plt.title('ROC Space for different ML Techniques')
-    
-    plt.show()
-'''    
+  
 def plotTechniques(data, parameters):
+    '''
+    Given a dictionary of data from the parameter selection and parameters, this function finds the average roc score for each model for each dataset (can change this to a min/max/median metric as noted below) and plots this data in a bar chart
+    '''
     ml_order = list(parameters.keys())
     plot_data = {}
     for ds in data:
@@ -98,10 +77,12 @@ def plotTechniques(data, parameters):
     plt.title('Mean Score by Technique')
     plt.xticks(index+bar_width*2.5, labels)
     plt.legend(loc=4)
-
-    plt.show()
+    plt.savefig('mean_score_technique.png', bbox_inches='tight')
     
 def plotLevels(data):
+    '''
+    Given a dictionary of data from the parameter selection, this function finds the median roc score for each taxa level for each dataset (can change this to a min/max/median metric as noted below) and plots this data in a bar chart
+    '''
     plot_data = {}
     for ds in data:
         ds_type, levels = ds.split('.')
@@ -136,10 +117,12 @@ def plotLevels(data):
     plt.title('Median Score by Taxa Level')
     plt.xticks(index+bar_width*2.5, interest_levels)
     plt.legend(loc=4)
-
-    plt.show()
+    plt.savefig('median_score_taxa.png', bbox_inches='tight')
   
 def plotByDS(parameters, fig_num, data, best_params, ds, predict_sets):
+    '''
+    Given a dictionary of parameters, data from a dataset, the best parameters as calculated previously and which set(s) to use for assessing fit (validation set, test set or both), this function goes through each model and fits the model with the best parameters as previously calculated, getting the TPR and FPR for the prediction set, then plotting those on a scatterplot by model.
+    '''
     fig = plt.figure(fig_num)
     for ml in parameters:
         for p_type in predict_sets:
@@ -155,9 +138,12 @@ def plotByDS(parameters, fig_num, data, best_params, ds, predict_sets):
     plt.xlabel('False Positive')
     plt.ylabel('True Positive')
     plt.title('ROC Space for different ML Techniques: ' + ds + ' dataset')
-    plt.show()
+    plt.savefig('best_level_' + ds + '.png', bbox_inches='tight')
     
 def plotBest(parameters, fig_num, data, best_params, datasets, predict_sets):
+    '''
+    Given a dictionary of parameters, data from all datasets, the best parameters as calculated previously and which set(s) to use for assessing fit (validation set, test set or both), this function goes through each dataset and fits the best model only for that dataset with the best parameters as previously calculated, getting the TPR and FPR for the prediction set, then plotting those on a scatterplot by dataset.
+    '''
     fig = plt.figure(fig_num)
     colors = ['#66c2a5', '#fc8d62', '#8da0cb', '#e78ac3', '#a6d854']
     count = 0
@@ -177,9 +163,12 @@ def plotBest(parameters, fig_num, data, best_params, datasets, predict_sets):
     plt.xlabel('False Positive')
     plt.ylabel('True Positive')
     plt.title('ROC Space for Best Technique By Dataset')
-    plt.show()
+    plt.savefig('best_level_all.png', bbox_inches='tight')
     
 def getBestLevels(data, num_best):
+    '''
+    Given data on model fit as previously calculated and a parameter for the top number of levels to return, this function goes through each dataset and orders the taxa levels by best to worst roc score, then chooses the top number of them (according to the value passed in) and puts them in a dictionary to return
+    '''
     best_levels = {}
     best_score = {}
     for ds in data:
@@ -200,6 +189,9 @@ def getBestLevels(data, num_best):
     return best_levels
     
 def getBestFitData(best_fit, random_seed, with_poly, with_fs):
+    '''
+    Given data on model fit as previously calculated and a flag for poly features and feature selection, this function goes through each dataset and gets the data for the best fit model, scaling and splitting it for future analysis. If either the poly or feature selection flags are set to true, this function also will add polynomial features or perform feature selection before returning the feature and class dataframes for the train/valid/test sets for each dataset
+    '''
     best = {}
     for ds in best_fit:
         if ';' in best_fit[ds][0]:
@@ -236,6 +228,9 @@ def getBestFitData(best_fit, random_seed, with_poly, with_fs):
     return best
     
 def getBestTechnique(techs):
+    '''
+    Given data on model fit as previously calculated, this function finds the model with the best score and returns it
+    '''
     max_score = 0
     max_tech = ''
     for ml in techs:
@@ -245,6 +240,9 @@ def getBestTechnique(techs):
     return max_tech
     
 def getBestForest(data):
+    '''
+    Given data on model fit as previously calculated, this function finds the best random forest for each dataset, returning the taxa levels that need to be used to get this best scoring forest
+    '''
     best_forest = {}
     for ds in data:
         ds_type, levels = ds.split('.')
@@ -260,6 +258,9 @@ def getBestForest(data):
     return best
     
 def getBestForestFeatures(parameters, random_seed, best_fit, best_forests, data):
+    '''
+    Given data on model fit as previously calculated, a dictionary of models, a dictionary of the levels to retreive the best forest for each dataset and the dataframes for that best level, this function fits the best forest and then gets the features importances for that forest. It then sorts by most important for each dataset and writes the results to a file.
+    '''
     clf = parameters['Forest']['model']
     output = ''
     for ds in best_forests:
@@ -281,6 +282,9 @@ def getBestForestFeatures(parameters, random_seed, best_fit, best_forests, data)
     f.close()
     
 def loadFittedData(file_range):
+    '''
+    Given a range of file indices, this function goes through those files and uses the json parser to load the data, then combines all of the data into a single dictionary and returns it.
+    '''
     in_data = {}
     for i in range(file_range[0], file_range[1]+1):
         in_file_name = 'fit' + str(i) + '.json'
@@ -299,8 +303,7 @@ def loadFittedData(file_range):
 random_seed = 4
 random.seed(random_seed)
 
-### ML starts here
-
+#Models
 forest = {'color': '#6a3d9a', 'model': ensemble.RandomForestClassifier()}
 
 adaboost = {'color': '#a6cee3', 'model': ensemble.AdaBoostClassifier()}
@@ -333,8 +336,10 @@ data = loadFittedData((1,5))
 #plotLevels(data)
 
 #Getting data for best levels and more plots
+'''
 best_levels = getBestLevels(data, 5)
 best_data = getBestFitData(best_levels, random_seed, False, False)
+'''
 #count = 1
 #for ds in best_levels:
     #plotByDS(parameters, count, best_data[ds], data[ds+'.'+best_levels[ds][0]], ds, {'valid': 'o', 'test': 'v'})
