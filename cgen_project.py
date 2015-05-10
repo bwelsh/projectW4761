@@ -78,6 +78,7 @@ def plotTechniques(data, parameters):
     plt.xticks(index+bar_width*2.5, labels)
     plt.legend(loc=4)
     plt.savefig('mean_score_technique.png', bbox_inches='tight')
+    plt.close()
     
 def plotLevels(data):
     '''
@@ -118,6 +119,7 @@ def plotLevels(data):
     plt.xticks(index+bar_width*2.5, interest_levels)
     plt.legend(loc=4)
     plt.savefig('median_score_taxa.png', bbox_inches='tight')
+    plt.close()
   
 def plotByDS(parameters, fig_num, data, best_params, ds, predict_sets):
     '''
@@ -139,6 +141,7 @@ def plotByDS(parameters, fig_num, data, best_params, ds, predict_sets):
     plt.ylabel('True Positive')
     plt.title('ROC Space for different ML Techniques: ' + ds + ' dataset')
     plt.savefig('best_level_' + ds + '.png', bbox_inches='tight')
+    plt.close()
     
     
 def plotCrossPredict(parameters, data, best_params, ds):
@@ -172,6 +175,7 @@ def plotCrossPredict(parameters, data, best_params, ds):
     plt.xticks(index+bar_width*2.5, labels)
     plt.legend(loc=4)
     plt.savefig('cross_predict_' + ds + '.png', bbox_inches='tight')
+    plt.close()
     
 def plotBest(parameters, fig_num, data, best_params, datasets, predict_sets):
     '''
@@ -197,6 +201,7 @@ def plotBest(parameters, fig_num, data, best_params, datasets, predict_sets):
     plt.ylabel('True Positive')
     plt.title('ROC Space for Best Technique By Dataset')
     plt.savefig('best_level_all.png', bbox_inches='tight')
+    plt.close()
     
 def getBestLevels(data, num_best):
     '''
@@ -383,34 +388,33 @@ parameters = {'Forest': forest, 'AdaBoost': adaboost, 'Logit': logit, 'KNN': knn
 data = loadFittedData((1,5))
 
 #Plots w/o data
-#plotTechniques(data, parameters)
-#plotLevels(data)
+plotTechniques(data, parameters)
+plotLevels(data)
 
-#Getting data for best levels and more plots
-
+#Getting data for best levels and plots of predictions on test sets
 best_levels = getBestLevels(data, 5)
-#best_data = getBestFitData(best_levels, random_seed, False, False)
 
-#count = 1
-#for ds in best_levels:
-    #plotByDS(parameters, count, best_data[ds], data[ds+'.'+best_levels[ds][0]], ds, {'valid': 'o', 'test': 'v'})
-    #count = count + 1
-#best_params = {}
-#best_tech = {}
-#for ds in best_levels:
-    #best_params[ds] = data[ds+'.'+best_levels[ds][0]]
-    #best_tech[ds] = getBestTechnique(best_params[ds])
-#plotBest(parameters, 1, best_data, best_params, best_tech, {'valid': 'o', 'test': 'v'})
+best_data = getBestFitData(best_levels, random_seed, False, False)
+count = 1
+for ds in best_levels:
+    plotByDS(parameters, count, best_data[ds], data[ds+'.'+best_levels[ds][0]], ds, {'valid': 'o', 'test': 'v'})
+    count = count + 1
+best_params = {}
+best_tech = {}
+for ds in best_levels:
+    best_params[ds] = data[ds+'.'+best_levels[ds][0]]
+    best_tech[ds] = getBestTechnique(best_params[ds])
+plotBest(parameters, 1, best_data, best_params, best_tech, {'valid': 'o', 'test': 'v'})
 
 #Use model trained on one dataset to predict test data on other datasets
-#cross_data = getCommonFeatureData(random_seed)
-#cross_params = {'perio': 'perio.phylum;order', 'naive': 'naive.order;phylum', 'catalog': 'catalog.phylum;order', 'richness': 'richness.order;phylum'}
-#for dset in cross_params:
-    #plotCrossPredict(parameters, cross_data, data[cross_params[dset]], dset)
+cross_data = getCommonFeatureData(random_seed)
+cross_params = {'perio': 'perio.phylum;order', 'naive': 'naive.order;phylum', 'catalog': 'catalog.phylum;order', 'richness': 'richness.order;phylum'}
+for dset in cross_params:
+    plotCrossPredict(parameters, cross_data, data[cross_params[dset]], dset)
 
 #Getting best forest and fitting to get feature importances
-#best_forests = getBestForest(data)
-#best_forest_data = getBestFitData(best_forests, random_seed, False, False)
-#getBestForestFeatures(parameters, random_seed, data, best_forests, best_forest_data)
+best_forests = getBestForest(data)
+best_forest_data = getBestFitData(best_forests, random_seed, False, False)
+getBestForestFeatures(parameters, random_seed, data, best_forests, best_forest_data)
 
 

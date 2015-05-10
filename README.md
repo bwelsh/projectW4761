@@ -63,6 +63,14 @@ best_level_perio.png - This plot is created by the cgen_project.py file. It plot
 
 best_level_richness.png - This plot is created by the cgen_project.py file. It plots the ROC space for validation and test data for the best parameters for each model for the best levels of the richness dataset.
 
+cross_predict_catalog.png - This plot is created by the cgen_project.py file. It plots the sensitivity plus specificity score for each technique for the test set of each dataset, with the models trained on the Catalog dataset.
+
+cross_predict_naive.png - It plots the sensitivity plus specificity score for each technique for the test set of each dataset, with the models trained on the Naive dataset.
+
+cross_predict_perio.png - It plots the sensitivity plus specificity score for each technique for the test set of each dataset, with the models trained on the Perio dataset.
+
+cross_predict_richness.png - It plots the sensitivity plus specificity score for each technique for the test set of each dataset, with the models trained on the Richness dataset.
+
 feature_importances.txt - This file is created by the cgen_project.py file. It gives the feature importances in descending order for the best forest found for each dataset.
 
 mean_score_technique.png - This file is created by the cgen_project.py file. It plots the average score for each model for each of the datasets.
